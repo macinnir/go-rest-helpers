@@ -37,7 +37,7 @@ func DateStringNow() string {
 func BuildSelf(path string) string {
 	self := "http"
 
-	if Config.HTTPS {
+	if Config.HTTPS == "https" {
 		self = self + "s"
 	}
 

@@ -6,7 +6,7 @@ import (
 	"github.com/Tkanos/gonfig"
 )
 
-// Config represents the application configuration options
+// ConfigObj represents the application configuration options
 // @model Config
 type ConfigObj struct {
 	DBName            string `json:"dbName"`
@@ -15,7 +15,7 @@ type ConfigObj struct {
 	DBPass            string `json:"dbPass"`
 	Domain            string `json:"domain"`
 	Port              string `json:"port"`
-	HTTPS             bool   `json:"https"`
+	HTTPS             string `json:"string"`
 	URLVersionPrefix  string `json:"urlVersionPrefix"`
 	TokenExpiryMinute int    `json:"tokenExpiryMinute"`
 	TokenIssuerName   string `json:"tokenIssuerName"`
