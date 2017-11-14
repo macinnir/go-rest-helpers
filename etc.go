@@ -33,6 +33,7 @@ func DateStringNow() string {
 	return DateString(time.Now())
 }
 
+// BuildSelf builds a url for the current object
 func BuildSelf(path string) string {
 	self := "http"
 

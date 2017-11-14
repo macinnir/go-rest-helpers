@@ -112,6 +112,30 @@ func QueryArgInt(r *http.Request, name string, defaultVal int) (val int, e error
 	return
 }
 
+// QueryArgInt64 checks the incoming request `r` for a query argument named `name`
+// and if it exists, attempts to parse it to an 64-bit integer
+// If the argument does not exist, the value `defaultVal` is returned
+func QueryArgInt64(r *http.Request, name string, defaultVal int64) (val int64, e error) {
+
+	val = 0
+	stringVal := r.URL.Query().Get(name)
+
+	if len(stringVal) > 0 {
+
+		val, e = strconv.ParseInt(stringVal, 10, 64)
+
+		if e != nil {
+			return
+		}
+
+		return
+	}
+
+	val = defaultVal
+
+	return
+}
+
 // QueryArgString checks the incoming request `r` for a query argument named `name`
 // and if it exists, returns it
 // Else, it returns `defaultVal`
