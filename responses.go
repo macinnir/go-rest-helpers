@@ -2,7 +2,6 @@ package util
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -29,7 +28,6 @@ type ErrorResponse struct {
 func NotFound(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNotFound)
 	w.Header().Set("content-type", "text/plain")
-	log.Println("NOT FOUND")
 	return
 }
 

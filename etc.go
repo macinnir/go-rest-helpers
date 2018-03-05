@@ -37,16 +37,16 @@ func DateStringNow() string {
 func BuildSelf(path string) string {
 	self := "http"
 
-	if Config.HTTPS == "https" {
+	if Config.IsHttps() == true {
 		self = self + "s"
 	}
 
-	self = self + "://" + Config.PublicDomain
+	self = self + "://" + Config.PublicDomain()
 
-	if Config.Port != "80" {
-		self = self + ":" + Config.Port
+	if Config.Port() != "80" {
+		self = self + ":" + Config.Port()
 	}
 
-	self = self + "/" + Config.URLVersionPrefix + "/" + path
+	self = self + "/" + Config.URLVersionPrefix() + "/" + path
 	return self
 }

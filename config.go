@@ -6,32 +6,25 @@ import (
 	"github.com/Tkanos/gonfig"
 )
 
-// ConfigObj represents the application configuration options
-// @model Config
-type ConfigObj struct {
-	DBName            string `json:"dbName"`
-	DBHost            string `json:"dbHost"`
-	DBUser            string `json:"dbUser"`
-	DBPass            string `json:"dbPass"`
-	Domain            string `json:"domain"`
-	Port              string `json:"port"`
-	HTTPS             string `json:"string"`
-	URLVersionPrefix  string `json:"urlVersionPrefix"`
-	TokenExpiryMinute int    `json:"tokenExpiryMinute"`
-	TokenIssuerName   string `json:"tokenIssuerName"`
-	PublicDomain      string `json:"publicDomain"`
-}
-
 var (
 	// Config represents a collection of the global config values
-	Config ConfigObj
+	Config IConfig
 )
 
+// IConfig is an interface for basic config functionality
+type IConfig interface {
+	IsHttps() bool
+	PublicDomain() string
+	Port() string
+	URLVersionPrefix() string
+}
+
 // LoadConfig the global configuration values from json
-func LoadConfig(path string) {
+func LoadConfig(path string, configObj IConfig) {
 	// Load loads the config
-	Config = ConfigObj{}
-	configErr := gonfig.GetConf(path, &Config)
+	// Config = ConfigObj{}
+	Config = configObj
+	configErr := gonfig.GetConf(path, configObj)
 	if configErr != nil {
 		log.Fatal("Config Error:", configErr)
 	}
