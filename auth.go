@@ -2,8 +2,8 @@ package util
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
+	"math/rand"
+
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -176,34 +176,47 @@ func GenerateRandomBytes(n int) ([]byte, error) {
 // It will return an error if the system's secure random
 // number generator fails to function correctly, in which
 // case the caller should not continue.
-func GenerateRandomString(s int) (string, error) {
-	b, err := GenerateRandomBytes(s)
-	return base64.URLEncoding.EncodeToString(b)[0:s], err
+// func GenerateRandomString(s int) (string, error) {
+// 	b, err := GenerateRandomBytes(s)
+// 	return base64.URLEncoding.EncodeToString(b)[0:s], err
+// }
+
+const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+// GenerateRandomString returns a randomized string
+func GenerateRandomString(stringLen int) string {
+	b := make([]byte, stringLen)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
 }
 
-func generateRefreshToken() string {
-	n := 32
-	s, _ := GenerateRandomString(n)
-	return s
-}
+// func generateRefreshToken() string {
+// 	n := 32
+// 	s, _ := GenerateRandomString(n)
+// 	return s
+// }
 
 // BuildJWT creates a JWT token based on userId and refreshToken. If RefreshToken is an empty string (len() == 0), generates a new refreshToken
-func BuildJWT(userID int64, refreshToken string, expiryMinutes int, issuer string) (jwt JWTResponse) {
+// func BuildJWT(userID int64, refreshToken string, expiryMinutes int, issuer string) (jwt JWTResponse) {
 
-	// TODO Put in configuration
-	// https://www.goinggo.net/2013/06/gos-duration-type-unravelled.html
-	expires := time.Duration(expiryMinutes) * time.Minute
-	expiresTime := time.Now().Add(expires)
-	token := generateKey(expiresTime, strconv.FormatInt(userID, 10), issuer)
+// 	// TODO Put in configuration
+// 	// https://www.goinggo.net/2013/06/gos-duration-type-unravelled.html
+// 	expires := time.Duration(expiryMinutes) * time.Minute
+// 	expiresTime := time.Now().Add(expires)
+// 	token := generateKey(expiresTime, strconv.FormatInt(userID, 10), issuer)
 
-	if len(refreshToken) == 0 {
-		refreshToken = generateRefreshToken()
-	}
+// 	if len(refreshToken) == 0 {
+// 		refreshToken = generateRefreshToken()
+// 	}
 
-	jwt = JWTResponse{AccessToken: token, TokenType: "Bearer", ExpiresIn: int(expires.Seconds()), RefreshToken: refreshToken}
+// 	jwt = JWTResponse{AccessToken: token, TokenType: "Bearer", ExpiresIn: int(expires.Seconds()), RefreshToken: refreshToken}
 
-	return
-}
+// 	return
+// }
 
 // ValidateToken validates a JWT authorization token
 func ValidateToken(authToken string) error {
