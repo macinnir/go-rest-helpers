@@ -1,10 +1,14 @@
 package util
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,6 +17,7 @@ import (
 	"github.com/SermoDigital/jose/crypto"
 	"github.com/SermoDigital/jose/jws"
 	"github.com/SermoDigital/jose/jwt"
+	"github.com/go-redis/redis"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -263,3 +268,83 @@ func EncryptPassword(password string) (hash string, e error) {
 // JWK - JSON Web Key
 // JSON data structure that represents a cryptographic key
 // jwk = { 'k': <password> }
+// Auth contains methods for accessing the currently authenticated user
+type Auth struct {
+	cache *redis.Client
+}
+
+// NewAuth returns a new instance of Auth
+func NewAuth(cache *redis.Client) *Auth {
+	return &Auth{
+		cache: cache,
+	}
+}
+
+// GetCurrentUser gets the current user from the redis cache via the access token
+func (a *Auth) GetCurrentUser(r *http.Request) (userProfile *UserProfile, e error) {
+
+	var accessToken string
+	var userProfileJSONString string
+
+	// Get the authorization header
+	authorizationHeader := strings.TrimSpace(r.Header.Get("Authorization"))
+
+	prefix := "Bearer "
+
+	if len(authorizationHeader) <= len(prefix) {
+		log.Printf("Invalid authorization header: %s", authorizationHeader)
+		return
+	}
+
+	authorizationKey := authorizationHeader[len(prefix):]
+
+	clientLoginKey := fmt.Sprintf("client_login_%s", authorizationKey)
+
+	if accessToken, e = a.cache.Get(clientLoginKey).Result(); e != nil {
+		log.Printf("Authorization: %s", authorizationKey)
+		log.Printf("profile.go: Invalid login key: %s", e.Error())
+		return
+	}
+
+	if userProfileJSONString, e = a.cache.Get(fmt.Sprintf("user_profile_%s", accessToken)).Result(); e != nil {
+		log.Printf("No profile found: %s", e.Error())
+		return
+	}
+
+	userProfile = &UserProfile{}
+	if e = json.Unmarshal([]byte(userProfileJSONString), userProfile); e != nil {
+		log.Printf("Could not unmarshal user profile: %s", e.Error())
+		return
+	}
+
+	return
+}
+
+// AuthMiddleware is the authentication middleware for routes
+func (a *Auth) AuthMiddleware(next http.HandlerFunc) http.Handler {
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		var e error
+		var userProfile *UserProfile
+
+		userProfile, e = a.GetCurrentUser(r)
+
+		if e != nil {
+			http.Error(w, e.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, "userProfile", userProfile)
+
+		next(w, r.WithContext(ctx))
+		// Do some stuff after
+
+	})
+}
+
+func GetActiveUserProfile(r *http.Request) *UserProfile {
+	userProfile, _ := r.Context().Value("userProfile").(*UserProfile)
+	return userProfile
+}
