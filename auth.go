@@ -5,18 +5,13 @@ import (
 	"math/rand"
 
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/SermoDigital/jose/crypto"
-	"github.com/SermoDigital/jose/jws"
-	"github.com/SermoDigital/jose/jwt"
 	"github.com/go-redis/redis"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -64,70 +59,70 @@ type Token struct {
 var authKey, authKeyPriv []byte
 
 // GetUserIDFromAuth validates the authHeaders and fetches the userID
-func GetUserIDFromAuth(r *http.Request) (userID int64, e error) {
+// func GetUserIDFromAuth(r *http.Request) (userID int64, e error) {
 
-	var authToken jwt.JWT
-	var subject string
-	var ok bool
+// 	var authToken jwt.JWT
+// 	var subject string
+// 	var ok bool
 
-	authorizationHeader := r.Header.Get("Authorization")
+// 	authorizationHeader := r.Header.Get("Authorization")
 
-	if len(authorizationHeader) == 0 {
-		e = errors.New("Missing authorization header")
-		return
-	}
+// 	if len(authorizationHeader) == 0 {
+// 		e = errors.New("Missing authorization header")
+// 		return
+// 	}
 
-	if !strings.HasPrefix(authorizationHeader, "Bearer ") {
-		e = errors.New("Invalid authorization header")
-		return
-	}
+// 	if !strings.HasPrefix(authorizationHeader, "Bearer ") {
+// 		e = errors.New("Invalid authorization header")
+// 		return
+// 	}
 
-	if authToken, e = validateToken(authorizationHeader[7:]); e != nil {
-		return
-	}
+// 	if authToken, e = validateToken(authorizationHeader[7:]); e != nil {
+// 		return
+// 	}
 
-	if subject, ok = authToken.Claims().Subject(); !ok {
-		e = errors.New("Missing subject")
-		return
-	}
+// 	if subject, ok = authToken.Claims().Subject(); !ok {
+// 		e = errors.New("Missing subject")
+// 		return
+// 	}
 
-	if userID, e = strconv.ParseInt(subject, 10, 64); e != nil {
-		e = errors.New("Invalid subject")
-		return
-	}
+// 	if userID, e = strconv.ParseInt(subject, 10, 64); e != nil {
+// 		e = errors.New("Invalid subject")
+// 		return
+// 	}
 
-	return
+// 	return
 
-}
+// }
 
 // validateToken validates and returns the JWT authentication token
-func validateToken(authToken string) (auth jwt.JWT, e error) {
+// func validateToken(authToken string) (auth jwt.JWT, e error) {
 
-	// TODO read this file into memory when the application starts
-	bytes, _ := ioutil.ReadFile("./auth_key.pub")
-	rsaPublic, _ := crypto.ParseRSAPublicKeyFromPEM(bytes)
+// 	// TODO read this file into memory when the application starts
+// 	bytes, _ := ioutil.ReadFile("./auth_key.pub")
+// 	rsaPublic, _ := crypto.ParseRSAPublicKeyFromPEM(bytes)
 
-	// fmt.Printf("Authorization Token %s \n", authToken)
-	auth, e = jws.ParseJWT([]byte(authToken))
+// 	// fmt.Printf("Authorization Token %s \n", authToken)
+// 	auth, e = jws.ParseJWT([]byte(authToken))
 
-	if e != nil {
-		return
-	}
+// 	if e != nil {
+// 		return
+// 	}
 
-	// Validate token
-	if e = auth.Validate(rsaPublic, crypto.SigningMethodRS256); e != nil {
-		return
-	}
+// 	// Validate token
+// 	if e = auth.Validate(rsaPublic, crypto.SigningMethodRS256); e != nil {
+// 		return
+// 	}
 
-	// iss Issuer
-	// issuer, ok := jwt.Claims().Issuer()
+// 	// iss Issuer
+// 	// issuer, ok := jwt.Claims().Issuer()
 
-	// sub Subject - Identifies the principal of the subject of the jwt
-	// https://self-issued.info/docs/draft-ietf-oauth-json-web-token.html#rfc.section.4.1.2
-	// subject, ok := jwt.Claims().Subject()
+// 	// sub Subject - Identifies the principal of the subject of the jwt
+// 	// https://self-issued.info/docs/draft-ietf-oauth-json-web-token.html#rfc.section.4.1.2
+// 	// subject, ok := jwt.Claims().Subject()
 
-	return
-}
+// 	return
+// }
 
 func getPublicAuthKey() []byte {
 
@@ -219,48 +214,48 @@ func GenerateRandomString(stringLen int) string {
 // }
 
 // ValidateToken validates a JWT authorization token
-func ValidateToken(authToken string) error {
+// func ValidateToken(authToken string) error {
 
-	bytes := getPublicAuthKey()
-	rsaPublic, _ := crypto.ParseRSAPublicKeyFromPEM(bytes)
+// 	bytes := getPublicAuthKey()
+// 	rsaPublic, _ := crypto.ParseRSAPublicKeyFromPEM(bytes)
 
-	// fmt.Printf("Authorization Token %s \n", authToken)
+// 	// fmt.Printf("Authorization Token %s \n", authToken)
 
-	jwt, err := jws.ParseJWT([]byte(authToken))
+// 	jwt, err := jws.ParseJWT([]byte(authToken))
 
-	if err != nil {
-		return err
-	}
+// 	if err != nil {
+// 		return err
+// 	}
 
-	// Validate token
-	if err = jwt.Validate(rsaPublic, crypto.SigningMethodRS256); err != nil {
-		return err
-	}
+// 	// Validate token
+// 	if err = jwt.Validate(rsaPublic, crypto.SigningMethodRS256); err != nil {
+// 		return err
+// 	}
 
-	// iss Issuer
-	// issuer, ok := jwt.Claims().Issuer()
+// 	// iss Issuer
+// 	// issuer, ok := jwt.Claims().Issuer()
 
-	// sub Subject - Identifies the principal of the subject of the jwt
-	// https://self-issued.info/docs/draft-ietf-oauth-json-web-token.html#rfc.section.4.1.2
-	// subject, ok := jwt.Claims().Subject()
+// 	// sub Subject - Identifies the principal of the subject of the jwt
+// 	// https://self-issued.info/docs/draft-ietf-oauth-json-web-token.html#rfc.section.4.1.2
+// 	// subject, ok := jwt.Claims().Subject()
 
-	return nil
-}
+// 	return nil
+// }
 
 // JOSE Standards
 // Javascript Object Signing and Encryption
 // http://jose.readthedocs.io/en/latest/
-func generateKey(expires time.Time, subject string, issuer string) string {
-	bytes := getPrivateAuthKey()
-	claims := jws.Claims{}
-	claims.SetExpiration(expires)
-	claims.SetSubject(subject)
-	claims.SetIssuer(issuer)
-	rsaPrivate, _ := crypto.ParseRSAPrivateKeyFromPEM(bytes)
-	jwt := jws.NewJWT(claims, crypto.SigningMethodRS256)
-	b, _ := jwt.Serialize(rsaPrivate)
-	return string(b)
-}
+// func generateKey(expires time.Time, subject string, issuer string) string {
+// 	bytes := getPrivateAuthKey()
+// 	claims := jws.Claims{}
+// 	claims.SetExpiration(expires)
+// 	claims.SetSubject(subject)
+// 	claims.SetIssuer(issuer)
+// 	rsaPrivate, _ := crypto.ParseRSAPrivateKeyFromPEM(bytes)
+// 	jwt := jws.NewJWT(claims, crypto.SigningMethodRS256)
+// 	b, _ := jwt.Serialize(rsaPrivate)
+// 	return string(b)
+// }
 
 // EncryptPassword encrypts a password string
 func EncryptPassword(password string) (hash string, e error) {
